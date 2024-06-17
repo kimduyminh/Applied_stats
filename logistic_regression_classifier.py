@@ -1,6 +1,6 @@
+from sklearn.linear_model import LogisticRegressionCV
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -46,39 +46,14 @@ preprocessor = ColumnTransformer(
         ('num', numerical_transformer, nume_cols),
         ('cat', categorical_transformer, cate_cols)
     ])
-
 cpu_cores=8
-
-def get_accuracy_score(n,traX,reaX,traY,reaY):
-    model_2=KNeighborsClassifier(n_neighbors=n)
-    pipeline2 = Pipeline(steps=[('preprocessor', preprocessor),
-                                ('model', model_2)
-                                ])
-    pipeline2.fit(traX,traY)
-    predict_val=pipeline2.predict(reaX)
-    accuracy_test=accuracy_score(reaY,predict_val)
-    return accuracy_test
-
-#finding best tree number to maximize accuracy
-n_list=[i for i in range(1,100)]
-accuracy_data=[]
-for i in n_list:
-    print("\n")
-    print("Trying neighbor numbers: "+str(i))
-    a=get_accuracy_score(i,X_train,X_test,y_train,y_test)
-    accuracy_data.append(a)
-    print("Accuracy: "+str(a))
-best_number_of_neighbor = n_list[accuracy_data.index(max(accuracy_data))]
-print("BEST NUMBER OF TREES")
-print(best_number_of_neighbor)
-
-knn=Pipeline(steps=[('preprocessor', preprocessor),
-                    ('model', KNeighborsClassifier(n_neighbors=best_number_of_neighbor))
+lr=Pipeline(steps=[('preprocessor', preprocessor),
+                    ('model', LogisticRegressionCV(n_jobs=cpu_cores,solver='liblinear'))
                              ])
-knn.fit(X_train,y_train)
+lr.fit(X_train,y_train)
 
 # predicting some value
-y_pred = knn.predict(X_test)
+y_pred = lr.predict(X_test)
 
 # evaluate accuracy
 accuracy = accuracy_score(y_test, y_pred)

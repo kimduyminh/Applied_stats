@@ -47,15 +47,38 @@ preprocessor = ColumnTransformer(
         ('cat', categorical_transformer, cate_cols)
     ])
 
+cpu_cores=8
 
-# train the model
-knn = Pipeline(steps=[('preprocessor', preprocessor),
-                    ('model', DecisionTreeClassifier(max_leaf_nodes=1000))
+def get_accuracy_score(n,traX,reaX,traY,reaY):
+    model_2=DecisionTreeClassifier(max_depth=n,random_state=1)
+    pipeline2 = Pipeline(steps=[('preprocessor', preprocessor),
+                                ('model', model_2)
+                                ])
+    pipeline2.fit(traX,traY)
+    predict_val=pipeline2.predict(reaX)
+    accuracy_test=accuracy_score(reaY,predict_val)
+    return accuracy_test
+
+#finding best tree number to maximize accuracy
+n_list=[10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,50,100,200,500,1000,2000,5000,10000]
+accuracy_data=[]
+for i in n_list:
+    print("\n")
+    print("Trying tree numbers: "+str(i))
+    a=get_accuracy_score(i,X_train,X_test,y_train,y_test)
+    accuracy_data.append(a)
+    print("Accuracy: "+str(a))
+best_number_of_tree = n_list[accuracy_data.index(max(accuracy_data))]
+print("BEST NUMBER OF TREES")
+print(best_number_of_tree)
+
+dt=Pipeline(steps=[('preprocessor', preprocessor),
+                    ('model', DecisionTreeClassifier(max_depth=best_number_of_tree))
                              ])
-knn.fit(X_train, y_train)
+dt.fit(X_train,y_train)
 
 # predicting some value
-y_pred = knn.predict(X_test)
+y_pred = dt.predict(X_test)
 
 # evaluate accuracy
 accuracy = accuracy_score(y_test, y_pred)

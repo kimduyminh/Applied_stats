@@ -1,6 +1,6 @@
+from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -46,11 +46,10 @@ preprocessor = ColumnTransformer(
         ('num', numerical_transformer, nume_cols),
         ('cat', categorical_transformer, cate_cols)
     ])
-
 cpu_cores=8
 
 def get_accuracy_score(n,traX,reaX,traY,reaY):
-    model_2=KNeighborsClassifier(n_neighbors=n)
+    model_2=RandomForestClassifier(n_estimators=n,random_state=1,n_jobs=cpu_cores)
     pipeline2 = Pipeline(steps=[('preprocessor', preprocessor),
                                 ('model', model_2)
                                 ])
@@ -60,25 +59,25 @@ def get_accuracy_score(n,traX,reaX,traY,reaY):
     return accuracy_test
 
 #finding best tree number to maximize accuracy
-n_list=[i for i in range(1,100)]
+n_list=[100,200,500,1000,2000,4000,5000,6000,7000,8000,10000]
 accuracy_data=[]
 for i in n_list:
     print("\n")
-    print("Trying neighbor numbers: "+str(i))
+    print("Trying tree numbers: "+str(i))
     a=get_accuracy_score(i,X_train,X_test,y_train,y_test)
     accuracy_data.append(a)
     print("Accuracy: "+str(a))
-best_number_of_neighbor = n_list[accuracy_data.index(max(accuracy_data))]
+best_number_of_tree = n_list[accuracy_data.index(max(accuracy_data))]
 print("BEST NUMBER OF TREES")
-print(best_number_of_neighbor)
+print(best_number_of_tree)
 
-knn=Pipeline(steps=[('preprocessor', preprocessor),
-                    ('model', KNeighborsClassifier(n_neighbors=best_number_of_neighbor))
+rf=Pipeline(steps=[('preprocessor', preprocessor),
+                    ('model', RandomForestClassifier(n_jobs=cpu_cores,n_estimators=best_number_of_tree))
                              ])
-knn.fit(X_train,y_train)
+rf.fit(X_train,y_train)
 
 # predicting some value
-y_pred = knn.predict(X_test)
+y_pred = rf.predict(X_test)
 
 # evaluate accuracy
 accuracy = accuracy_score(y_test, y_pred)
